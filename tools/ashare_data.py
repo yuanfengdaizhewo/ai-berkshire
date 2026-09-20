@@ -16,6 +16,7 @@
 import argparse
 import json
 import os
+import shutil
 import subprocess
 import sys
 from decimal import Decimal, ROUND_HALF_EVEN
@@ -24,9 +25,14 @@ _TIMEOUT = 15
 
 
 def _curl(url):
-    """用 curl --noproxy 直连，绕过系统代理。"""
+    """用 curl --noproxy 直连，绕过系统代理。
+
+    curl 可执行文件的位置按平台自动探测（Windows 为 curl.exe，
+    macOS/Linux 通常在 /usr/bin/curl），找不到时回退到裸名交给 PATH 解析。
+    """
+    curl_bin = shutil.which("curl") or shutil.which("curl.exe") or "curl"
     result = subprocess.run(
-        ["/usr/bin/curl", "-s", "--noproxy", "*",
+        [curl_bin, "-s", "--noproxy", "*",
          "-H", "User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)",
          url],
         capture_output=True, timeout=_TIMEOUT,
